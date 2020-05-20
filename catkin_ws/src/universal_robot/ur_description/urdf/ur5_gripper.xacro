@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro"
+       name="ur5" >
+
+  <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
+
+  <!-- common stuff -->
+  <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro" />
+
+  <!-- ur5 -->
+  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
+
+  <!-- gripper -->
+  <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro" />
+  <xacro:include filename="$(find robotiq_ft_sensor)/urdf/robotiq_ft300.urdf.xacro"/>
+
+  <!-- create the robot + eef combo itself as a macro -->
+  <xacro:macro name="ee_robot" params="prefix">
+
+  <!-- arm -->
+  <xacro:ur5_robot prefix="" joint_limited="false"
+    transmission_hw_interface="$(arg transmission_hw_interface)"
+  />
+
+  <xacro:robotiq_arg2f_140 prefix="${prefix}" />
+  <xacro:robotiq_ft300 prefix="" parent="ee_link">
+    <origin xyz="0.00 0 0. " rpy="${pi/2} 0 ${-pi/2}"/>
+  </xacro:robotiq_ft300>
+
+	<!-- toolside frame -->		
+	<joint name="${prefix}toolside_joint" type="fixed" >		
+	  <origin xyz="0 0 0.0375" rpy="0 0 0" />		
+	  <parent link="${prefix}ft300_sensor" />		
+	  <child link="${prefix}fts_toolside" />		
+	</joint>		
+	<link name="${prefix}fts_toolside"/>
+
+  <!-- attach gripper -->
+
+
+  <joint name="ur5_ee_link-gripper_base" type="fixed">
+    <parent link="${prefix}fts_toolside"/>
+    <child link="${prefix}robotiq_arg2f_base_link"/>
+    <origin xyz=" 0.0 0.0 0.0" rpy="0.0 0.0 ${pi/2}"/>
+  </joint>
+
+  <link name="world" />
+
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link = "base_link" />
+    <origin xyz="0.0 0.0 0.96" rpy="0.0 0.0 0.0" />
+  </joint>
+
+ </xacro:macro>
+<xacro:ee_robot prefix=""/>
+
+</robot>
